@@ -1,0 +1,90 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>VIEWZ | Official</title>
+    <script src="https://www.gstatic.com/firebasejs/9.15.0/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.15.0/firebase-database-compat.js"></script>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+        body, html { background: #000; margin: 0; padding: 0; overflow: hidden; color: white; font-family: sans-serif; }
+        .feed { height: 100vh; overflow-y: scroll; snap-type: y mandatory; }
+        section { height: 100vh; width: 100%; snap-align: start; position: relative; display: flex; align-items: center; justify-content: center; background: #000; }
+        video { width: 100%; height: 100%; object-fit: cover; }
+        .botao-v { background: linear-gradient(45deg, #00f2fe, #f64f59); border-radius: 15px; padding: 12px 25px; font-weight: 900; color: #000; box-shadow: 0 0 15px rgba(255, 255, 255, 0.2); }
+        .ui-overlay { position: absolute; inset: 0; pointer-events: none; display: flex; flex-direction: column; justify-content: flex-end; padding: 20px; background: linear-gradient(transparent, rgba(0,0,0,0.7)); }
+        .controls { pointer-events: auto; position: absolute; right: 15px; bottom: 120px; display: flex; flex-direction: column; gap: 25px; }
+    </style>
+</head>
+<body>
+
+<div id="feed-container" class="feed">
+    <section id="boas-vindas">
+        <div class="text-center px-10">
+            <h1 class="text-3xl font-black mb-4 tracking-tighter">VIEWZ</h1>
+            <p class="opacity-60 mb-8">Seu blog está online! 🚀<br>Toque no "+" para postar o primeiro vídeo.</p>
+            <div class="animate-bounce text-4xl">👇</div>
+        </div>
+    </section>
+</div>
+
+<nav class="fixed bottom-0 w-full h-20 bg-black/80 backdrop-blur-lg border-t border-white/10 flex justify-around items-center z-50">
+    <button onclick="location.reload()" class="text-2xl">🏠</button>
+    <button onclick="abrirPost()" class="botao-v text-xl">V</button>
+    <button onclick="abrirPost()" class="text-4xl">+</button>
+    <div class="w-10 h-10 rounded-full border-2 border-white/20 overflow-hidden">
+        <img src="https://api.dicebear.com/7.x/avataaars/svg?seed=Alice">
+    </div>
+</nav>
+
+<script>
+    const firebaseConfig = {
+        apiKey: "AIzaSyAx9GC7fsdUs5katX0SGke1aZbGLZ7xCCw",
+        databaseURL: "https://viewz-fe6a3-default-rtdb.firebaseio.com/",
+        projectId: "viewz-fe6a3",
+        appId: "1:740765488523:web:d7c5d2a61e3c141c1e0b8e"
+    };
+
+    firebase.initializeApp(firebaseConfig);
+    const db = firebase.database();
+
+    function abrirPost() {
+        const url = prompt("Cole o link do vídeo (.mp4):");
+        if (url && url.includes('http')) {
+            db.ref('videos').push({
+                url: url,
+                user: "Alice",
+                time: Date.now()
+            });
+        }
+    }
+
+    db.ref('videos').on('value', snap => {
+        const container = document.getElementById('feed-container');
+        if (snap.exists()) {
+            container.innerHTML = ''; 
+            snap.forEach(child => {
+                const v = child.val();
+                const post = `
+                    <section>
+                        <video src="${v.url}" loop autoplay muted playsinline onclick="this.paused?this.play():this.pause()"></video>
+                        <div class="ui-overlay">
+                            <div class="controls text-3xl">
+                                <button onclick="this.style.color='red'">❤️</button>
+                                <button onclick="window.open('${v.url}')">📥</button>
+                                <button onclick="alert('Comentários em breve!')">💬</button>
+                            </div>
+                            <div class="mb-16">
+                                <h3 class="font-bold text-lg">@Alice_Viewz ✔️</h3>
+                                <p class="text-sm opacity-80">Postado no meu novo Blog!</p>
+                            </div>
+                        </div>
+                    </section>`;
+                container.innerHTML = post + container.innerHTML;
+            });
+        }
+    });
+</script>
+</body>
+</html>
